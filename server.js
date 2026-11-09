@@ -3,7 +3,8 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { spawn } = require('child_process');
+const pdfParse = require('pdf-parse');
+const docx = require('docx');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,52 +33,44 @@ app.post('/api/convert', upload.single('pdfFile'), async (req, res) => {
         }
 
         const pdfPath = req.file.path;
+        console.log(`Processing file: ${req.file.originalname}`);
+
+        // 1. PDF se text extract karein
+        const dataBuffer = fs.readFileSync(pdfPath);
+        const pdfData = await pdfParse(dataBuffer);
+        const extractedText = pdfData.text;
+
+        // 2. Word (.docx) document banayein
+        const paragraphs = extractedText.split('\n').map(line => {
+            return new docx.Paragraph({
+                children: [new docx.TextRun(line)]
+            });
+        });
+
+        const doc = new docx.Document({
+            sections: [{
+                properties: {},
+                children: paragraphs
+            }]
+        });
+
         const outputFilename = `Converted_${Date.now()}.docx`;
         const outputPath = path.join(downloadDir, outputFilename);
+        
+        const buffer = await docx.Packer.toBuffer(doc);
+        fs.writeFileSync(outputPath, buffer);
 
-        console.log(`Starting Free Python Conversion: ${req.file.originalname}`);
+        // Temporary PDF delete karein
+        fs.unlinkSync(pdfPath);
 
-        // Python script ko background mein run karna
-        const pythonProcess = spawn('python3', [
-            path.join(__dirname, 'convert_engine.py'),
-            pdfPath,
-            outputPath
-        ]);
-
-        let pythonError = '';
-
-        pythonProcess.stdout.on('data', (data) => {
-            const output = data.toString().trim();
-            if (output === 'SUCCESS') {
-                console.log('Conversion successful!');
-            }
-        });
-
-        pythonProcess.stderr.on('data', (data) => {
-            pythonError += data.toString();
-        });
-
-        pythonProcess.on('close', (code) => {
-            // Server ka space bachane ke liye original PDF delete kar dein
-            if (fs.existsSync(pdfPath)) {
-                fs.unlinkSync(pdfPath);
-            }
-
-            if (code === 0 && fs.existsSync(outputPath)) {
-                // Frontend ko nayi Word file ka asali Download Link bhejein
-                res.status(200).json({ 
-                    message: 'Free Unlimited Conversion successful!',
-                    downloadUrl: `/downloads/${outputFilename}`
-                });
-            } else {
-                console.error(`Python script exited with code ${code}. Error: ${pythonError}`);
-                res.status(500).json({ error: 'Conversion failed during Python processing.' });
-            }
+        res.status(200).json({ 
+            message: 'Conversion successful!',
+            downloadUrl: `/downloads/${outputFilename}`
         });
 
     } catch (error) {
-        console.error("Server Error: ", error);
-        res.status(500).json({ error: 'Server error during setup.' });
+        console.error("Conversion Error: ", error);
+        res.status(500).json({ error: 'Server error during PDF conversion.' });
     }
 });
 
