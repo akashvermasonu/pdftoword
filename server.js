@@ -7,7 +7,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+
+// Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Explicitly send index.html when someone visits the main domain
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -17,7 +24,6 @@ app.post('/api/convert', upload.single('pdfFile'), async (req, res) => {
             return res.status(400).json({ error: 'No PDF uploaded.' });
         }
         console.log(`File received: ${req.file.originalname}`);
-        // Note: Conversion logic will be added here later
         res.status(200).json({ message: 'File received successfully. API is live.' });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
