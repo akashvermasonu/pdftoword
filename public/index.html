@@ -1,36 +1,140 @@
-const fileInput = document.getElementById('file-input');
-const status = document.getElementById('status');
-
-fileInput.addEventListener('change', async function(e) {
-    if(e.target.files.length > 0) {
-        const file = e.target.files[0];
-        status.classList.remove('hidden');
-        status.innerText = `Uploading and converting ${file.name}... Please wait.`;
-        status.classList.add('text-primary');
-
-        const formData = new FormData();
-        formData.append('pdfFile', file);
-
-        try {
-            // Backend server ko file bhejna
-            const response = await fetch('/api/convert', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if(response.ok) {
-                status.innerText = `Success! ${result.message}`;
-                status.classList.replace('text-primary', 'text-green-500');
-                // Yahan download link generate hoga jab conversion logic lag jayega
-            } else {
-                status.innerText = `Error: ${result.error}`;
-                status.classList.replace('text-primary', 'text-red-500');
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Use our free online PDF to Word converter to easily change PDF to Word format. Convert PDF to Docx fast, securely, and without losing formatting.">
+    <meta name="keywords" content="pdf to word, convert pdf to word, pdf to word converter, pdf to word converter free, pdf to word doc, how to convert pdf to word, online pdf to word converter">
+    <title>Free PDF to Word Converter Online | Convert PDF to Docx</title>
+    
+    <!-- Fonts & Styling -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { mono: ['Roboto Mono', 'monospace'] },
+                    colors: { darkbg: '#121212', darkcard: '#1e1e1e', primary: '#3b82f6' }
+                }
             }
-        } catch (error) {
-            status.innerText = `Connection failed. Make sure backend is running.`;
-            status.classList.replace('text-primary', 'text-red-500');
         }
-    }
-});
+    </script>
+    <style>
+        body { font-family: 'Roboto Mono', monospace; }
+        .seo-content h2 { font-size: 1.5rem; font-weight: bold; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #60a5fa; }
+        .seo-content h3 { font-size: 1.25rem; font-weight: bold; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #93c5fd; }
+        .seo-content p { margin-bottom: 1rem; line-height: 1.6; color: #d1d5db; }
+        .seo-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; color: #d1d5db; }
+    </style>
+</head>
+<body class="bg-darkbg text-gray-200 min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <header class="bg-darkcard border-b border-gray-800 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white"><a href="/">ConvertPDFtoWord<span class="text-primary">.pro</span></a></h1>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#tool" class="hover:text-primary transition">Converter</a>
+                <a href="#guide" class="hover:text-primary transition">How to Use</a>
+                <a href="/contact.html" class="hover:text-primary transition">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Tool Section -->
+    <main class="flex-grow max-w-6xl mx-auto px-4 py-12 w-full">
+        <section id="tool" class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-white mb-4">Convert PDF to Word</h2>
+            <p class="text-gray-400 mb-8 max-w-2xl mx-auto">Transform your PDF files into editable Word documents instantly. 100% free online PDF to Word converter.</p>
+            
+            <div class="bg-darkcard p-10 rounded-xl shadow-2xl border border-gray-800 max-w-3xl mx-auto">
+                <div class="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center hover:border-primary transition cursor-pointer" id="drop-zone">
+                    <svg class="w-16 h-16 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <p class="text-lg mb-2">Drag & Drop your PDF here</p>
+                    <p class="text-sm text-gray-500 mb-4">or</p>
+                    <label class="bg-primary hover:bg-blue-600 text-white font-bold py-2 px-6 rounded cursor-pointer transition">
+                        Select PDF File
+                        <input type="file" id="file-input" class="hidden" accept=".pdf">
+                    </label>
+                </div>
+                <div id="status" class="mt-6 text-sm text-gray-400 hidden">Processing your file... Please wait.</div>
+            </div>
+        </section>
+
+        <!-- SEO Article Section -->
+        <section id="guide" class="seo-content bg-darkcard p-8 rounded-xl shadow-lg border border-gray-800 mb-12">
+            <h1 class="text-3xl font-bold text-white mb-6">The Best Free PDF to Word Converter Online</h1>
+            <p>If you are looking for a quick and reliable way to <strong>convert PDF to Word</strong>, you are in the right place. Managing documents can be stressful, especially when you need to edit a locked file. Our <strong>online PDF to Word converter</strong> makes it incredibly simple to transform your files into editable <strong>Word documents</strong> without losing your original formatting.</p>
+
+            <h2>How to Convert a PDF to Word?</h2>
+            <p>Wondering <strong>how do I convert a PDF to Word</strong>? We have streamlined the process so anyone can do it in seconds. Just follow these steps:</p>
+            <ul>
+                <li><strong>Upload:</strong> Click the "Select PDF File" button or drag and drop your document into the box above.</li>
+                <li><strong>Convert:</strong> Our <strong>PDF to Word converter free</strong> engine will automatically start changing your <strong>PDF to Word format</strong>.</li>
+                <li><strong>Download:</strong> Once the process is complete, download your fresh <strong>PDF to Docx</strong> file directly to your device.</li>
+            </ul>
+
+            <h2>Why Choose Our PDF to Word Doc Converter?</h2>
+            <p>There are many tools out there, like Adobe Acrobat or iLovePDF, but our tool is designed for speed, accuracy, and privacy. Whether you need to <strong>convert from PDF to Word</strong> for school, business, or personal use, our platform offers:</p>
+            <ul>
+                <li><strong>100% Free:</strong> No hidden fees. It is a completely <strong>free PDF to Word converter</strong>.</li>
+                <li><strong>No Installation Required:</strong> Forget about downloading heavy software. Use our <strong>pdf to ms office word</strong> tool directly from your browser.</li>
+                <li><strong>High-Quality OCR:</strong> Need to <strong>convert PDF to Word doc</strong> from scanned images? Our advanced <strong>PDF to Word OCR</strong> technology recognizes text accurately.</li>
+                <li><strong>Security Guaranteed:</strong> We respect your privacy. All files uploaded to our <strong>word to pdf converter</strong> servers are permanently deleted within 1 hour.</li>
+            </ul>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-darkcard border-t border-gray-800 py-8 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="/privacy-policy.html" class="hover:text-white transition">Privacy Policy</a>
+                <a href="/contact.html" class="hover:text-white transition">Contact Us</a>
+            </div>
+            <p>&copy; 2026 ConvertPDFtoWord.pro. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Combined JavaScript for Upload -->
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const status = document.getElementById('status');
+
+        fileInput.addEventListener('change', async function(e) {
+            if(e.target.files.length > 0) {
+                const file = e.target.files[0];
+                status.classList.remove('hidden');
+                status.innerText = `Uploading and converting ${file.name}... Please wait.`;
+                status.classList.add('text-primary');
+
+                const formData = new FormData();
+                formData.append('pdfFile', file);
+
+                try {
+                    // Backend server ko file bhejna
+                    const response = await fetch('/api/convert', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if(response.ok) {
+                        status.innerText = `Success! ${result.message}`;
+                        status.classList.replace('text-primary', 'text-green-500');
+                    } else {
+                        status.innerText = `Error: ${result.error}`;
+                        status.classList.replace('text-primary', 'text-red-500');
+                    }
+                } catch (error) {
+                    status.innerText = `Connection failed. Make sure backend is running.`;
+                    status.classList.replace('text-primary', 'text-red-500');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
