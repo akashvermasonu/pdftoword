@@ -59,6 +59,21 @@
                         <input type="file" id="file-input" class="hidden" accept=".pdf">
                     </label>
                 </div>
+                
+                <!-- New Elements: File Info, Convert Button, Download Button -->
+                <div id="file-info" class="hidden mt-6 text-gray-300">
+                    Selected File: <span id="file-name" class="font-bold text-white"></span>
+                </div>
+                
+                <div class="mt-6 flex justify-center space-x-4">
+                    <button id="convert-btn" class="hidden bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition transform hover:scale-105">
+                        Convert to Word
+                    </button>
+                    <a id="download-btn" href="#" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition transform hover:scale-105" download>
+                        Download Word File
+                    </a>
+                </div>
+
                 <div id="status" class="mt-6 text-sm text-gray-400 hidden">Processing your file... Please wait.</div>
             </div>
         </section>
@@ -98,41 +113,69 @@
         </div>
     </footer>
 
-    <!-- Combined JavaScript for Upload -->
+    <!-- Updated JavaScript Logic -->
     <script>
         const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const fileNameDisplay = document.getElementById('file-name');
+        const convertBtn = document.getElementById('convert-btn');
+        const downloadBtn = document.getElementById('download-btn');
         const status = document.getElementById('status');
+        
+        let selectedFile = null;
 
-        fileInput.addEventListener('change', async function(e) {
+        // Step 1: When user selects a file
+        fileInput.addEventListener('change', function(e) {
             if(e.target.files.length > 0) {
-                const file = e.target.files[0];
-                status.classList.remove('hidden');
-                status.innerText = `Uploading and converting ${file.name}... Please wait.`;
-                status.classList.add('text-primary');
+                selectedFile = e.target.files[0];
+                
+                // Show file name and Convert button, hide others
+                fileNameDisplay.innerText = selectedFile.name;
+                fileInfo.classList.remove('hidden');
+                convertBtn.classList.remove('hidden');
+                downloadBtn.classList.add('hidden');
+                status.classList.add('hidden');
+            }
+        });
 
-                const formData = new FormData();
-                formData.append('pdfFile', file);
+        // Step 2: When user clicks "Convert to Word"
+        convertBtn.addEventListener('click', async function() {
+            if(!selectedFile) return;
 
-                try {
-                    // Backend server ko file bhejna
-                    const response = await fetch('/api/convert', {
-                        method: 'POST',
-                        body: formData
-                    });
+            // UI Updates during processing
+            convertBtn.classList.add('hidden');
+            status.classList.remove('hidden');
+            status.innerText = `Uploading and converting ${selectedFile.name}... Please wait.`;
+            status.className = 'mt-6 text-sm text-primary';
 
-                    const result = await response.json();
+            const formData = new FormData();
+            formData.append('pdfFile', selectedFile);
 
-                    if(response.ok) {
-                        status.innerText = `Success! ${result.message}`;
-                        status.classList.replace('text-primary', 'text-green-500');
-                    } else {
-                        status.innerText = `Error: ${result.error}`;
-                        status.classList.replace('text-primary', 'text-red-500');
-                    }
-                } catch (error) {
-                    status.innerText = `Connection failed. Make sure backend is running.`;
-                    status.classList.replace('text-primary', 'text-red-500');
+            try {
+                // Send to backend
+                const response = await fetch('/api/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if(response.ok) {
+                    status.innerText = `Success! ${result.message}`;
+                    status.className = 'mt-6 text-sm text-green-500';
+                    
+                    // Show Download Button
+                    downloadBtn.classList.remove('hidden');
+                    // downloadBtn.href = result.downloadUrl; // Backend link connect hoga yahan
+                } else {
+                    status.innerText = `Error: ${result.error}`;
+                    status.className = 'mt-6 text-sm text-red-500';
+                    convertBtn.classList.remove('hidden');
                 }
+            } catch (error) {
+                status.innerText = `Connection failed. Make sure backend is running.`;
+                status.className = 'mt-6 text-sm text-red-500';
+                convertBtn.classList.remove('hidden');
             }
         });
     </script>
