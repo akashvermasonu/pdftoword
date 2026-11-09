@@ -60,7 +60,7 @@
                     </label>
                 </div>
                 
-                <!-- New Elements: File Info, Convert Button, Download Button -->
+                <!-- File Info, Convert Button, Download Button -->
                 <div id="file-info" class="hidden mt-6 text-gray-300">
                     Selected File: <span id="file-name" class="font-bold text-white"></span>
                 </div>
@@ -69,7 +69,7 @@
                     <button id="convert-btn" class="hidden bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition transform hover:scale-105">
                         Convert to Word
                     </button>
-                    <a id="download-btn" href="#" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition transform hover:scale-105" download>
+                    <a id="download-btn" href="#" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition transform hover:scale-105">
                         Download Word File
                     </a>
                 </div>
@@ -113,7 +113,7 @@
         </div>
     </footer>
 
-    <!-- Updated JavaScript Logic -->
+    <!-- Final Working JavaScript Logic -->
     <script>
         const fileInput = document.getElementById('file-input');
         const fileInfo = document.getElementById('file-info');
@@ -124,7 +124,7 @@
         
         let selectedFile = null;
 
-        // Step 1: When user selects a file
+        // File Select karne par
         fileInput.addEventListener('change', function(e) {
             if(e.target.files.length > 0) {
                 selectedFile = e.target.files[0];
@@ -138,11 +138,10 @@
             }
         });
 
-        // Step 2: When user clicks "Convert to Word"
+        // Convert Button dabane par
         convertBtn.addEventListener('click', async function() {
             if(!selectedFile) return;
 
-            // UI Updates during processing
             convertBtn.classList.add('hidden');
             status.classList.remove('hidden');
             status.innerText = `Uploading and converting ${selectedFile.name}... Please wait.`;
@@ -152,7 +151,7 @@
             formData.append('pdfFile', selectedFile);
 
             try {
-                // Send to backend
+                // Backend ko file send karna
                 const response = await fetch('/api/convert', {
                     method: 'POST',
                     body: formData
@@ -164,9 +163,10 @@
                     status.innerText = `Success! ${result.message}`;
                     status.className = 'mt-6 text-sm text-green-500';
                     
-                    // Show Download Button
+                    // Asali Word file ka link lagana aur Button show karna
                     downloadBtn.classList.remove('hidden');
-                    // downloadBtn.href = result.downloadUrl; // Backend link connect hoga yahan
+                    downloadBtn.href = result.downloadUrl;
+                    downloadBtn.removeAttribute('download');
                 } else {
                     status.innerText = `Error: ${result.error}`;
                     status.className = 'mt-6 text-sm text-red-500';
