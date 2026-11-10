@@ -60,7 +60,7 @@
                     </label>
                 </div>
                 
-                <!-- File Info, Convert Button, Download Button -->
+                <!-- File Info & Buttons -->
                 <div id="file-info" class="hidden mt-6 text-gray-300">
                     Selected File: <span id="file-name" class="font-bold text-white"></span>
                 </div>
@@ -113,7 +113,7 @@
         </div>
     </footer>
 
-    <!-- Final Working JavaScript Logic -->
+    <!-- Working JavaScript Logic -->
     <script>
         const fileInput = document.getElementById('file-input');
         const fileInfo = document.getElementById('file-info');
@@ -124,12 +124,9 @@
         
         let selectedFile = null;
 
-        // File Select karne par
         fileInput.addEventListener('change', function(e) {
             if(e.target.files.length > 0) {
                 selectedFile = e.target.files[0];
-                
-                // Show file name and Convert button, hide others
                 fileNameDisplay.innerText = selectedFile.name;
                 fileInfo.classList.remove('hidden');
                 convertBtn.classList.remove('hidden');
@@ -138,7 +135,6 @@
             }
         });
 
-        // Convert Button dabane par
         convertBtn.addEventListener('click', async function() {
             if(!selectedFile) return;
 
@@ -151,7 +147,6 @@
             formData.append('pdfFile', selectedFile);
 
             try {
-                // Backend ko file send karna
                 const response = await fetch('/api/convert', {
                     method: 'POST',
                     body: formData
@@ -162,8 +157,6 @@
                 if(response.ok) {
                     status.innerText = `Success! ${result.message}`;
                     status.className = 'mt-6 text-sm text-green-500';
-                    
-                    // Asali Word file ka link lagana aur Button show karna
                     downloadBtn.classList.remove('hidden');
                     downloadBtn.href = result.downloadUrl;
                     downloadBtn.removeAttribute('download');
