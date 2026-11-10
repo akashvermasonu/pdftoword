@@ -57,12 +57,14 @@ app.post('/api/convert', upload.single('pdfFile'), async (req, res) => {
         const outputFilename = `Converted_${Date.now()}.docx`;
         const outputPath = path.join(downloadDir, outputFilename);
         
+        // 3. Word file ko server par save karein
         const buffer = await docx.Packer.toBuffer(doc);
         fs.writeFileSync(outputPath, buffer);
 
-        // Temporary PDF delete karein
+        // 4. Temporary PDF delete karein (Space bachane ke liye)
         fs.unlinkSync(pdfPath);
 
+        // 5. Download link bhejein
         res.status(200).json({ 
             message: 'Conversion successful!',
             downloadUrl: `/downloads/${outputFilename}`
