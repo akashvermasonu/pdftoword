@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Folders create karein
+// Create Folders securely
 const uploadDir = path.join(__dirname, 'uploads');
 const downloadDir = path.join(__dirname, 'downloads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
@@ -33,14 +33,19 @@ app.post('/api/convert', upload.single('pdfFile'), async (req, res) => {
         }
 
         const pdfPath = req.file.path;
-        console.log(`Processing file: ${req.file.originalname}`);
+        console.log(`Starting simple conversion for: ${req.file.originalname}`);
 
-        // 1. PDF se text extract karein
+        // 1. PDF Extract text
         const dataBuffer = fs.readFileSync(pdfPath);
         const pdfData = await pdfParse(dataBuffer);
-        const extractedText = pdfData.text;
+        let extractedText = pdfData.text;
 
-        // 2. Word (.docx) document banayein
+        // Agar PDF mein text nahi mila (image only PDF)
+        if (!extractedText || extractedText.trim() === '') {
+            extractedText = "We couldn't extract text from this PDF. It might be a scanned image or protected document.";
+        }
+
+        // 2. Create Word (.docx) file
         const paragraphs = extractedText.split('\n').map(line => {
             return new docx.Paragraph({
                 children: [new docx.TextRun(line)]
@@ -57,16 +62,16 @@ app.post('/api/convert', upload.single('pdfFile'), async (req, res) => {
         const outputFilename = `Converted_${Date.now()}.docx`;
         const outputPath = path.join(downloadDir, outputFilename);
         
-        // 3. Word file ko server par save karein
+        // 3. Save to server
         const buffer = await docx.Packer.toBuffer(doc);
         fs.writeFileSync(outputPath, buffer);
 
-        // 4. Temporary PDF delete karein (Space bachane ke liye)
+        // 4. Delete temp PDF file
         fs.unlinkSync(pdfPath);
 
-        // 5. Download link bhejein
+        // 5. Send Download Link
         res.status(200).json({ 
-            message: 'Conversion successful!',
+            message: 'Converted successfully!',
             downloadUrl: `/downloads/${outputFilename}`
         });
 
