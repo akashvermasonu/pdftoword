@@ -1,7 +1,7 @@
 {
   "name": "pdf-to-word-app",
   "version": "1.0.0",
-  "description": "Backend for convertpdftoword.pro",
+  "description": "Backend for convertpdftoword.pro (Simple Free Version)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
